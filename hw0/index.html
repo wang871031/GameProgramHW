@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+#info {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #00ffff
+}
+
+body {
+  overflow: hidden;
+}
+
+
+</style>
+</head>
+
+<script src="https://threejs.org/build/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+
+<body> 
+<div id="info">
+minimal three.js
+<br>
+<br>
+<button id= 'trainTurn'> Toggle Turn </button>
+
+</div>
+
+<script>
+$('#trainTurn').click(
+	function(){
+		turn =! turn;
+	}
+
+);
+var camera, scene, renderer;
+
+var rate = ( Math.PI + 2 ) / 3;
+var radius = 40;
+var clock;
+var train;
+var angle = 0;
+var angleOfTrainWent = angle;
+
+var road = radius;
+var sign = 1;
+var turn = false;
+init();
+animate();
+
+function init() {
+
+  scene = new THREE.Scene();
+
+  clock = new THREE.Clock();
+  
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+  document.body.appendChild(renderer.domElement);
+
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+  camera.position.set (0, 40, 50);
+  let controls = new THREE.OrbitControls(camera, renderer.domElement);
+	
+  var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
+  scene.add(gridXZ);
+ 
+ ////////////////////////////////////////////////////////////////
+   train = new THREE.Group();																		   // 建立群組
+   let trainBody = new THREE.Mesh (new THREE.BoxGeometry (10,10,30), new THREE.MeshNormalMaterial());  //方體
+   let chimney = new THREE.Mesh(new THREE.CylinderGeometry(4,4,20,12),new THREE.MeshNormalMaterial()); //圓柱體
+   chimney.position.y = 5;
+   chimney.position.z = -10;
+   train.add(trainBody,chimney);
+   scene.add (train);
+}
+
+function animate() {
+   var dt = clock.getDelta();
+  if(angleOfTrainWent >= Math.PI / 2 && road >= -40 && angleOfTrainWent < Math.PI * (3 / 2)) {
+    if(!turn) road -= ((40 * Math.PI + 80) / 3)*dt;
+    train.position.set (road, 5, -1 * radius);
+  }
+  else if(angleOfTrainWent >= Math.PI * (3 / 2) && road <= 40 && angleOfTrainWent < 2 * Math.PI) {
+    if(!turn) road += ((40 * Math.PI + 80) / 3)*dt;
+    train.position.set (road, 5, radius);
+  }
+  else{
+  	if(!turn) {
+      if(angleOfTrainWent >= Math.PI / 2 && angleOfTrainWent < Math.PI * (3 / 2) && sign != -1) sign = -sign;
+      if(angleOfTrainWent >= Math.PI * (3 / 2) && sign != 1 && angleOfTrainWent < 2 * Math.PI) sign = -sign;
+      if(angleOfTrainWent >= 2 * Math.PI) {
+        angle = 0;
+        road = 40;
+      }
+      train.position.set (radius* Math.cos(angle) + radius * sign, 5, radius* Math.sin(angle));
+      train.rotation.y = angle * -1;
+      angle -= rate*dt;
+      angleOfTrainWent = -angle;
+    }
+  }
+
+  requestAnimationFrame(animate);
+  render();
+
+}
+function render() {
+
+  renderer.render(scene, camera);
+
+}
+
+
+</script>
+</body>
+
+</html>
